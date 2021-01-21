@@ -6,7 +6,7 @@
       <e p="Assets" t="Include">
         <e p="Scripts" t="Include">
           <e p="Gravity.cs" t="Include" />
-          <e p="ThirdPersonCamera.cs" t="Include" />
+          <e p="ThirdPersonController.cs" t="Include" />
         </e>
       </e>
       <e p="BoTW.sln" t="IncludeFlat" />
