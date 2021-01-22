@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 [RequireComponent
 (
     typeof(CharacterController),
-    typeof(Gravity),
     typeof(PlayerInput)
 )]
 public class ThirdPersonController : MonoBehaviour
@@ -12,10 +11,17 @@ public class ThirdPersonController : MonoBehaviour
     [Range(1f, 10f)]
     public float maxCameraDistance = 5f;
 
+    [Range(-100f, -10f)]
+    public float gravity = -50f;
     [Range(0f, 5f)]
     public float jumpHeight = 2f;
     [Range(0.001f, 10f)]
     public float jumpTime = 0.1f;
+
+    [Range(-10f, -0.001f)]
+    public float glideVelocity = -1f;
+    [Range(0f, 5f)]
+    public float minGlideHeight = 2f;
     
     /// <summary>
     /// camera rotation axis
@@ -40,15 +46,30 @@ public class ThirdPersonController : MonoBehaviour
     /// character controller
     /// </summary>
     private CharacterController _controller;
-    /// <summary>
-    /// gravity controller
-    /// </summary>
-    private Gravity _gravity;
-
+    
     /// <summary>
     /// player input
     /// </summary>
     private PlayerInput _input;
+
+    /// <summary>
+    /// paraglider objct
+    /// </summary>
+    private GameObject _paraglider;
+
+    /// <summary>
+    /// currently gliding?
+    /// </summary>
+    private bool Gliding
+    {
+        get => _paraglider.activeSelf;
+        set => _paraglider.SetActive(value);
+    }
+
+    /// <summary>
+    /// current y velocity
+    /// </summary>
+    private float _yVel;
 
     private void Start()
     {
@@ -63,12 +84,14 @@ public class ThirdPersonController : MonoBehaviour
         _cam.localPosition = Vector3.back * maxCameraDistance;
 
         _controller = GetComponent<CharacterController>();
-        _gravity = GetComponent<Gravity>();
         _input = GetComponent<PlayerInput>();
+
+        _paraglider = transform.Find("Paraglider").gameObject;
 
         _camPos = _cam.localPosition;
 
         _input.actions.FindAction("Jump").performed += _ => Jump();
+        Gliding = false;
     }
 
     private void Update()
@@ -106,29 +129,77 @@ public class ThirdPersonController : MonoBehaviour
         // threshold of look rotation dot down at which point controls switch from
         // angle based to simple top down movement
         const float topDownThreshold = 0.9f;
-        
-        var input = _input.actions.FindAction("Move").ReadValue<Vector2>();
-        var down = Vector3.Dot(_axis.forward, Vector3.down);
 
-        var dir = new Vector3(input.x, 0, input.y);
-        if (down < topDownThreshold)
+        // xz
         {
-            dir = _axis.TransformDirection(dir);
+            var input = _input.actions.FindAction("Move").ReadValue<Vector2>();
+            var down = Vector3.Dot(_axis.forward, Vector3.down);
+
+            var dir = new Vector3(input.x, 0, input.y);
+            if (down < topDownThreshold)
+            {
+                dir = _axis.TransformDirection(dir);
+            }
+            else
+            {
+                dir = Quaternion.Euler(0, _axis.eulerAngles.y, 0) * dir;
+            }
+
+            dir.y = 0;
+            dir.Normalize();
+
+            _controller.Move(10f * Time.deltaTime * dir);
         }
-        else
+        // y
         {
-            dir = Quaternion.Euler(0, _axis.eulerAngles.y, 0) * dir;
+            if (_yVel < 0f)
+            {
+                if (Grounded(0.0f))
+                {
+                    Gliding = false;
+                    _yVel = 0f;
+                }
+                else if (Grounded(minGlideHeight))
+                {
+                    Gliding = false;
+                }
+            }
+            if (Gliding)
+            {
+                _yVel = Mathf.Lerp(_yVel, glideVelocity, Time.deltaTime * 2);
+            }
+            else
+            {
+                _yVel += gravity * Time.deltaTime;
+            }
+            
+            _controller.Move(_yVel * Time.deltaTime * Vector3.up);
         }
-
-        dir.y = 0;
-        dir.Normalize();
-
-        _controller.Move(10f * Time.deltaTime * dir);
     }
 
     private void Jump()
     {
-        _gravity.Jump(jumpHeight, jumpTime);
+        if (Grounded(0.25f))
+        {
+            Gliding = false;
+            _yVel = (jumpHeight - 0.5f * gravity * jumpTime * jumpTime) / jumpTime;
+        }
+        else if (_yVel <= glideVelocity / 2f)
+        {
+            Gliding = !Gliding;
+            if (Gliding)
+            {
+                _yVel = -1.25f * glideVelocity;
+            }
+        }
+    }
+    
+    public bool Grounded(float threshold)
+    {
+        var dist = _controller.height / 2f + _controller.skinWidth + threshold;
+        var pos = _controller.transform.position;
+        
+        return Physics.Raycast(pos, Vector3.down, dist);
     }
 
     private float ClampRot(float now, float add)
