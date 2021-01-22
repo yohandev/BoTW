@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class ThirdPersonController : MonoBehaviour
 {
     [Range(1f, 10f)]
@@ -18,9 +18,19 @@ public class ThirdPersonController : MonoBehaviour
     private Transform _cam;
 
     /// <summary>
+    /// desired camera rotation
+    /// </summary>
+    private Vector3 _rot;
+
+    /// <summary>
     /// character controller
     /// </summary>
     private CharacterController _controller;
+
+    /// <summary>
+    /// player input
+    /// </summary>
+    private PlayerInput _input;
     
     private void Start()
     {
@@ -35,6 +45,7 @@ public class ThirdPersonController : MonoBehaviour
         _cam.localPosition = Vector3.back * cameraDistance;
 
         _controller = GetComponent<CharacterController>();
+        _input = GetComponent<PlayerInput>();
     }
 
     private void Update()
@@ -45,20 +56,17 @@ public class ThirdPersonController : MonoBehaviour
 
     private void UpdateCamera()
     {
-        var input = Gamepad.current.rightStick.ReadValue();
-        var rot = _axis.localEulerAngles;
+        var input = _input.actions.FindAction("LookAround").ReadValue<Vector2>();
 
-        _axis.rotation = Quaternion.Euler
-        (
-            ClampRot(rot.x,input.y),
-            rot.y + input.x,
-            0
-        );
+        _rot.x = ClampRot(_rot.x, input.y);
+        _rot.y += input.x;
+        
+        _axis.rotation = Quaternion.Lerp(_axis.rotation, Quaternion.Euler(_rot), Time.deltaTime * 10);
     }
 
     private void UpdateMovement()
     {
-        var input = Gamepad.current.leftStick.ReadValue();
+        var input = _input.actions.FindAction("Move").ReadValue<Vector2>();
         var dir = _axis.TransformDirection(new Vector3(input.x, 0, input.y));
 
         _controller.SimpleMove(dir * 10f);
