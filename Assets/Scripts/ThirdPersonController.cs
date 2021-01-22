@@ -53,9 +53,14 @@ public class ThirdPersonController : MonoBehaviour
     private PlayerInput _input;
 
     /// <summary>
-    /// paraglider objct
+    /// visual paraglider
     /// </summary>
     private GameObject _paraglider;
+
+    /// <summary>
+    /// visual character
+    /// </summary>
+    private Transform _character;
 
     /// <summary>
     /// currently gliding?
@@ -86,7 +91,8 @@ public class ThirdPersonController : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<PlayerInput>();
 
-        _paraglider = transform.Find("Paraglider").gameObject;
+        _character = transform.Find("Character");
+        _paraglider = _character.Find("Paraglider").gameObject;
 
         _camPos = _cam.localPosition;
 
@@ -148,6 +154,10 @@ public class ThirdPersonController : MonoBehaviour
             dir.y = 0;
             dir.Normalize();
 
+            if (dir.sqrMagnitude > 0)
+            {
+                _character.rotation = Quaternion.Slerp(_character.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+            }
             _controller.Move(10f * Time.deltaTime * dir);
         }
         // y
@@ -166,7 +176,7 @@ public class ThirdPersonController : MonoBehaviour
             }
             if (Gliding)
             {
-                _yVel = Mathf.Lerp(_yVel, glideVelocity, Time.deltaTime * 2);
+                _yVel = Mathf.Lerp(_yVel, glideVelocity, Time.deltaTime);
             }
             else
             {
