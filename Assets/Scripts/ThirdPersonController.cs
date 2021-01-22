@@ -1,11 +1,21 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
+[RequireComponent
+(
+    typeof(CharacterController),
+    typeof(Gravity),
+    typeof(PlayerInput)
+)]
 public class ThirdPersonController : MonoBehaviour
 {
     [Range(1f, 10f)]
     public float maxCameraDistance = 5f;
+
+    [Range(0f, 5f)]
+    public float jumpHeight = 2f;
+    [Range(0.001f, 10f)]
+    public float jumpTime = 0.1f;
     
     /// <summary>
     /// camera rotation axis
@@ -30,12 +40,16 @@ public class ThirdPersonController : MonoBehaviour
     /// character controller
     /// </summary>
     private CharacterController _controller;
+    /// <summary>
+    /// gravity controller
+    /// </summary>
+    private Gravity _gravity;
 
     /// <summary>
     /// player input
     /// </summary>
     private PlayerInput _input;
-    
+
     private void Start()
     {
         _axis = new GameObject("Third Person Camera Axis").transform;
@@ -49,9 +63,12 @@ public class ThirdPersonController : MonoBehaviour
         _cam.localPosition = Vector3.back * maxCameraDistance;
 
         _controller = GetComponent<CharacterController>();
+        _gravity = GetComponent<Gravity>();
         _input = GetComponent<PlayerInput>();
 
         _camPos = _cam.localPosition;
+
+        _input.actions.FindAction("Jump").performed += _ => Jump();
     }
 
     private void Update()
@@ -96,7 +113,7 @@ public class ThirdPersonController : MonoBehaviour
         var dir = new Vector3(input.x, 0, input.y);
         if (down < topDownThreshold)
         {
-           dir = _axis.TransformDirection(dir);
+            dir = _axis.TransformDirection(dir);
         }
         else
         {
@@ -105,8 +122,13 @@ public class ThirdPersonController : MonoBehaviour
 
         dir.y = 0;
         dir.Normalize();
-        
-        _controller.SimpleMove(dir * 10f);
+
+        _controller.Move(10f * Time.deltaTime * dir);
+    }
+
+    private void Jump()
+    {
+        _gravity.Jump(jumpHeight, jumpTime);
     }
 
     private float ClampRot(float now, float add)
