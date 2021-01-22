@@ -28,7 +28,7 @@
                     "id": "1cf7644d-84a5-4914-80a8-dea001c74895",
                     "path": "<Gamepad>/rightStick",
                     "interactions": "",
-                    "processors": "NormalizeVector2",
+                    "processors": "NormalizeVector2,ScaleVector2(x=2.5,y=1.5)",
                     "groups": "",
                     "action": "LookAround",
                     "isComposite": false,

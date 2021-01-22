@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class ThirdPersonController : MonoBehaviour
 {
     [Range(1f, 10f)]
-    public float cameraDistance;
+    public float maxCameraDistance;
     
     /// <summary>
     /// camera rotation axis
@@ -42,7 +43,7 @@ public class ThirdPersonController : MonoBehaviour
         _cam = Camera.main.transform;
         _cam.parent = _axis;
         _cam.localRotation = Quaternion.identity;
-        _cam.localPosition = Vector3.back * cameraDistance;
+        _cam.localPosition = Vector3.back * maxCameraDistance;
 
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<PlayerInput>();
@@ -58,7 +59,7 @@ public class ThirdPersonController : MonoBehaviour
     {
         var input = _input.actions.FindAction("LookAround").ReadValue<Vector2>();
 
-        _rot.x = ClampRot(_rot.x, input.y);
+        _rot.x = ClampRot(_rot.x, -input.y);
         _rot.y += input.x;
         
         _axis.rotation = Quaternion.Lerp(_axis.rotation, Quaternion.Euler(_rot), Time.deltaTime * 10);
@@ -66,9 +67,26 @@ public class ThirdPersonController : MonoBehaviour
 
     private void UpdateMovement()
     {
+        // threshold of look rotation dot down at which point controls switch from
+        // angle based to simple top down movement
+        const float topDownThreshold = 0.9f;
+        
         var input = _input.actions.FindAction("Move").ReadValue<Vector2>();
-        var dir = _axis.TransformDirection(new Vector3(input.x, 0, input.y));
+        var down = Vector3.Dot(_axis.forward, Vector3.down);
 
+        var dir = new Vector3(input.x, 0, input.y);
+        if (down < topDownThreshold)
+        {
+           dir = _axis.TransformDirection(dir);
+        }
+        else
+        {
+            dir = Quaternion.Euler(0, _axis.eulerAngles.y, 0) * dir;
+        }
+
+        dir.y = 0;
+        dir.Normalize();
+        
         _controller.SimpleMove(dir * 10f);
     }
 
