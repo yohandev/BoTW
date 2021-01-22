@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class ThirdPersonController : MonoBehaviour
 {
     [Range(1f, 10f)]
-    public float maxCameraDistance;
+    public float maxCameraDistance = 5f;
     
     /// <summary>
     /// camera rotation axis
@@ -21,7 +20,11 @@ public class ThirdPersonController : MonoBehaviour
     /// <summary>
     /// desired camera rotation
     /// </summary>
-    private Vector3 _rot;
+    private Vector3 _camRot;
+    /// <summary>
+    /// desired camera position
+    /// </summary>
+    private Vector3 _camPos;
 
     /// <summary>
     /// character controller
@@ -47,6 +50,8 @@ public class ThirdPersonController : MonoBehaviour
 
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<PlayerInput>();
+
+        _camPos = _cam.localPosition;
     }
 
     private void Update()
@@ -57,12 +62,26 @@ public class ThirdPersonController : MonoBehaviour
 
     private void UpdateCamera()
     {
+        // rotate
         var input = _input.actions.FindAction("LookAround").ReadValue<Vector2>();
 
-        _rot.x = ClampRot(_rot.x, -input.y);
-        _rot.y += input.x;
+        _camRot.x = ClampRot(_camRot.x, -input.y);
+        _camRot.y += input.x;
         
-        _axis.rotation = Quaternion.Lerp(_axis.rotation, Quaternion.Euler(_rot), Time.deltaTime * 10);
+        _axis.rotation = Quaternion.Lerp(_axis.rotation, Quaternion.Euler(_camRot), Time.deltaTime * 10);
+
+        // collide
+        var now = _cam.localPosition;
+        var mask = ~LayerMask.GetMask("Link");
+        
+        _cam.localPosition = Vector3.back * maxCameraDistance;
+        if (Physics.Linecast(_axis.position, _cam.position, out var hit, mask))
+        {
+            var dist = maxCameraDistance - (_cam.position - hit.point).magnitude;
+            
+            _camPos = Vector3.back * dist;
+        }
+        _cam.localPosition = Vector3.Slerp(now, _camPos, Time.deltaTime * 10);
     }
 
     private void UpdateMovement()

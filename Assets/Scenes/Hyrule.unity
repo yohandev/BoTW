@@ -252,7 +252,7 @@ GameObject:
   - component: {fileID: 592744308}
   - component: {fileID: 592744309}
   - component: {fileID: 592744310}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Link
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -378,7 +378,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f8c4cc7ec534e5e96255644742400e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraDistance: 5
+  maxCameraDistance: 10
 --- !u!114 &592744310
 MonoBehaviour:
   m_ObjectHideFlags: 0

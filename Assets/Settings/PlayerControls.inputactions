@@ -39,7 +39,7 @@
                     "id": "2cd599dd-e441-443c-9e94-3cc3312b7781",
                     "path": "<Mouse>/delta",
                     "interactions": "",
-                    "processors": "NormalizeVector2,ScaleVector2(x=4,y=2.5)",
+                    "processors": "NormalizeVector2,ScaleVector2(x=4,y=2.5),ScaleVector2(x=0,y=0)",
                     "groups": "",
                     "action": "LookAround",
                     "isComposite": false,
