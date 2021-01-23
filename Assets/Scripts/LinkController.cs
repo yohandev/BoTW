@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent
@@ -93,7 +94,7 @@ public class LinkController : MonoBehaviour
 
         _character = transform.Find("Character");
         _paraglider = _character.Find("Paraglider").gameObject;
-
+        
         _camPos = _cam.localPosition;
 
         _input.actions.FindAction("Jump").performed += _ => Jump();
