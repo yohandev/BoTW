@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 [RequireComponent
 (
     typeof(CharacterController),
+    typeof(Gravity),
     typeof(PlayerInput)
 )]
 public class LinkController : MonoBehaviour
@@ -12,8 +13,9 @@ public class LinkController : MonoBehaviour
     [Range(1f, 10f)]
     public float maxCameraDistance = 10f;
 
-    [Range(-100f, -10f)]
-    public float gravity = -50f;
+    [Range(2f, 20f)]
+    public float runSpeed;
+    
     [Range(0f, 5f)]
     public float jumpHeight = 1.65f;
     [Range(0.001f, 10f)]
@@ -21,8 +23,6 @@ public class LinkController : MonoBehaviour
 
     [Range(-10f, -0.001f)]
     public float glideVelocity = -4f;
-    [Range(0f, 5f)]
-    public float minGlideHeight = 2f;
     
     /// <summary>
     /// camera rotation axis
@@ -47,6 +47,11 @@ public class LinkController : MonoBehaviour
     /// character controller
     /// </summary>
     private CharacterController _controller;
+
+    /// <summary>
+    /// gravity component
+    /// </summary>
+    private Gravity _gravity;
     
     /// <summary>
     /// player input
@@ -62,6 +67,11 @@ public class LinkController : MonoBehaviour
     /// visual character
     /// </summary>
     private Transform _character;
+
+    /// <summary>
+    /// visual character animator
+    /// </summary>
+    private Animator _anim;
 
     /// <summary>
     /// currently gliding?
@@ -90,10 +100,12 @@ public class LinkController : MonoBehaviour
         _cam.localPosition = Vector3.back * maxCameraDistance;
 
         _controller = GetComponent<CharacterController>();
+        _gravity = GetComponent<Gravity>();
         _input = GetComponent<PlayerInput>();
 
         _character = transform.Find("Character");
         _paraglider = _character.Find("Paraglider").gameObject;
+        _anim = _character.GetComponent<Animator>();
         
         _camPos = _cam.localPosition;
 
@@ -157,60 +169,39 @@ public class LinkController : MonoBehaviour
 
             if (dir.sqrMagnitude > 0)
             {
+                _anim.SetBool("Running", !Gliding);
+                
                 _character.rotation = Quaternion.Slerp(_character.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
-            }
-            _controller.Move(10f * Time.deltaTime * dir);
-        }
-        // y
-        {
-            if (_yVel < 0f)
-            {
-                if (Grounded(0.0f))
-                {
-                    Gliding = false;
-                    _yVel = 0f;
-                }
-                else if (Grounded(minGlideHeight))
-                {
-                    Gliding = false;
-                }
-            }
-            if (Gliding)
-            {
-                _yVel = Mathf.Lerp(_yVel, glideVelocity, Time.deltaTime);
+                _controller.Move(_anim.GetFloat("Velocity") * runSpeed * Time.deltaTime * dir);
             }
             else
             {
-                _yVel += gravity * Time.deltaTime;
+                _anim.SetBool("Running", false);
             }
-            
-            _controller.Move(_yVel * Time.deltaTime * Vector3.up);
         }
     }
 
     private void Jump()
     {
-        if (Grounded(0.25f))
+//        if (Grounded(0.25f))
+//        {
+//            Gliding = false;
+//            _yVel = (jumpHeight - 0.5f * gravity * jumpTime * jumpTime) / jumpTime;
+//        }
+//        else if (_yVel <= glideVelocity / 2f)
+//        {
+//            Gliding = !Gliding;
+//            if (Gliding)
+//            {
+//                _yVel = -1.25f * glideVelocity;
+//            }
+//        }
+        if (_gravity.Grounded(out _))
         {
             Gliding = false;
-            _yVel = (jumpHeight - 0.5f * gravity * jumpTime * jumpTime) / jumpTime;
+            
+            _gravity.Velocity = (jumpHeight - 0.5f * _gravity.force * jumpTime * jumpTime) / jumpTime;
         }
-        else if (_yVel <= glideVelocity / 2f)
-        {
-            Gliding = !Gliding;
-            if (Gliding)
-            {
-                _yVel = -1.25f * glideVelocity;
-            }
-        }
-    }
-    
-    public bool Grounded(float threshold)
-    {
-        var dist = _controller.height / 2f + _controller.skinWidth + threshold;
-        var pos = _controller.transform.position;
-        
-        return Physics.Raycast(pos, Vector3.down, dist);
     }
 
     private float ClampRot(float now, float add)

@@ -184,10 +184,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 523430083923815343, guid: 4d0825f09434242e680b3135baf841a0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 4d0825f09434242e680b3135baf841a0,
         type: 3}
       propertyPath: m_Name
       value: Character
+      objectReference: {fileID: 0}
+    - target: {fileID: 3228926825535664560, guid: 4d0825f09434242e680b3135baf841a0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 4d0825f09434242e680b3135baf841a0,
         type: 3}
@@ -410,10 +420,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 592744307}
-  - component: {fileID: 592744304}
   - component: {fileID: 592744303}
   - component: {fileID: 592744310}
   - component: {fileID: 592744305}
+  - component: {fileID: 592744304}
   m_Layer: 8
   m_Name: Link
   m_TagString: Untagged
@@ -432,27 +442,29 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 2
-  m_Radius: 0.5
+  m_Height: 1.75
+  m_Radius: 0.25
   m_SlopeLimit: 50
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!136 &592744304
-CapsuleCollider:
+  m_Center: {x: 0, y: -0.25, z: 0}
+--- !u!114 &592744304
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 592744302}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.25
-  m_Height: 1.75
-  m_Direction: 1
-  m_Center: {x: 0, y: -0.13, z: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27fdfa186f328467db2b85a083bad6fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  force: 50
+  drag: 0
+  slopeLimit: 45
+  slideFriction: 0.3
 --- !u!114 &592744305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -466,11 +478,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxCameraDistance: 10
-  gravity: -50
+  runSpeed: 4.5
   jumpHeight: 1.65
   jumpTime: 0.1
   glideVelocity: -4
-  minGlideHeight: 2
 --- !u!4 &592744307
 Transform:
   m_ObjectHideFlags: 0
@@ -606,21 +617,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 87870596}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &852629185
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 852629182}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 009f55a77974f42069c5197a73b91a24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  footDistance: 1.5
-  footThickness: 0.075
-  footLength: 0.08
 --- !u!114 &852629186
 MonoBehaviour:
   m_ObjectHideFlags: 0

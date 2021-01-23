@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
 public class FootIK : MonoBehaviour
@@ -65,7 +62,7 @@ public class FootIK : MonoBehaviour
             // calculate position and rotation
             var nor = hit.normal;
             var fwd = bone.TransformDirection(forward);
-            var pos = hit.point + offset;
+            var pos = hit.point + Vector3.Project(offset, nor);
             var rot = Quaternion.LookRotation(Vector3.ProjectOnPlane(fwd, nor), nor);
             
             // set goals

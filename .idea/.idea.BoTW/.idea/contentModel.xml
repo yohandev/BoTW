@@ -6,7 +6,7 @@
       <e p="Assets" t="Include">
         <e p="Scripts" t="Include">
           <e p="FootIK.cs" t="Include" />
-          <e p="LinkAnimator.cs" t="Include" />
+          <e p="Gravity.cs" t="Include" />
           <e p="LinkController.cs" t="Include" />
         </e>
         <e p="Shaders" t="Include">
