@@ -6,20 +6,20 @@ using UnityEngine.InputSystem;
     typeof(CharacterController),
     typeof(PlayerInput)
 )]
-public class ThirdPersonController : MonoBehaviour
+public class LinkController : MonoBehaviour
 {
     [Range(1f, 10f)]
-    public float maxCameraDistance = 5f;
+    public float maxCameraDistance = 10f;
 
     [Range(-100f, -10f)]
     public float gravity = -50f;
     [Range(0f, 5f)]
-    public float jumpHeight = 2f;
+    public float jumpHeight = 1.65f;
     [Range(0.001f, 10f)]
     public float jumpTime = 0.1f;
 
     [Range(-10f, -0.001f)]
-    public float glideVelocity = -1f;
+    public float glideVelocity = -4f;
     [Range(0f, 5f)]
     public float minGlideHeight = 2f;
     
