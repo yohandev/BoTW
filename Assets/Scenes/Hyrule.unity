@@ -630,20 +630,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  left: {fileID: 375811052}
-  right: {fileID: 1036221415}
-  rootRotWeight: 0.25
-  rootPosWeight: 1
-  positionWeight: 1
-  rotationWeight: 1
   rayCastDistance: 1.75
-  localPosMin: {x: 0, y: -1.15, z: 0}
-  localPosMax: {x: 0, y: -2, z: 0}
-  offset: {x: 0, y: 0.09, z: 0}
-  footForward: {x: 0, y: 1, z: 0}
   mask:
     serializedVersion: 2
     m_Bits: 55
+  root:
+    positionWeight: 1
+    rotationWeight: 0.25
+    positionMin: {x: 0, y: -1.15, z: 0}
+    positionMax: {x: 0, y: -2, z: 0}
+  feet:
+    left: {fileID: 375811052}
+    right: {fileID: 1036221415}
+    leftPositionWeight: 1
+    rightPositionWeight: 1
+    leftRotationWeight: 1
+    rightRotationWeight: 1
+    offset: {x: 0, y: 0.09, z: 0}
+    forward: {x: 0, y: 1, z: 0}
 --- !u!1 &962042489
 GameObject:
   m_ObjectHideFlags: 0

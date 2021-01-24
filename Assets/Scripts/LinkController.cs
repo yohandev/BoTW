@@ -61,7 +61,7 @@ public class LinkController : MonoBehaviour
     /// <summary>
     /// visual character foot IK
     /// </summary>
-    private FootIK _feet;
+    private CharacterInverseKinematics _feet;
     
     /// <summary>
     /// visual paraglider
@@ -107,7 +107,7 @@ public class LinkController : MonoBehaviour
         
         _paraglider = character.Find("Paraglider").gameObject;
         _anim = character.GetComponent<Animator>();
-        _feet = character.GetComponent<FootIK>();
+        _feet = character.GetComponent<CharacterInverseKinematics>();
         
         _camPos = _cam.localPosition;
 
