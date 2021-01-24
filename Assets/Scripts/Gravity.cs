@@ -73,7 +73,7 @@ public class Gravity : MonoBehaviour
         return false;
     }
 
-    // attempt to jump, returns if it was succesful/grounded
+    // attempt to jump, returns if it was successful/grounded
     public bool Jump(float height, float time)
     {
         if (Grounded(out _))

@@ -12,6 +12,10 @@ public class ParagliderTarget : MonoBehaviour
     [Range(0f, 100f)]
     public float drag = 0.3f;
 
+    [Tooltip("min distance from center to ground required to glide")]
+    [Range(0f, 10f)]
+    public float minDistance = 2f;
+    
     // is the paraglider active?
     public bool Gliding
     {
@@ -31,6 +35,12 @@ public class ParagliderTarget : MonoBehaviour
 
     private void Update()
     {
+        // should be gliding?
+        if (Physics.Raycast(transform.position, Vector3.down, minDistance))
+        {
+            Gliding = false;
+        }
+        
         // simple F = Bv model
         _gravity.drag = Gliding ? -(drag * _gravity.Velocity) : 0;
     }

@@ -67,7 +67,7 @@ public class LinkController : MonoBehaviour
         }
         
         // animation
-        _anim.Running = _dir.sqrMagnitude > 0 && !_glider.Gliding;
+        _anim.Running = _dir.sqrMagnitude > 0 && _gravity.Grounded(out _);
     }
 
     // called by the input system
@@ -80,5 +80,12 @@ public class LinkController : MonoBehaviour
     private void OnJump()
     {
         _glider.Gliding = !_gravity.Jump(jumpHeight, jumpTime);
+    }
+
+    // called by input system
+    private void OnSprint()
+    {
+        // sprint binding also cancels paraglider
+        _glider.Gliding = false;
     }
 }

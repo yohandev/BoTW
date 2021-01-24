@@ -479,7 +479,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f8c4cc7ec534e5e96255644742400e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 4.5
+  runSpeed: 4.5
+  glideSpeed: 9
   jumpHeight: 1.65
   jumpTime: 0.1
 --- !u!114 &592744306
@@ -530,6 +531,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   paraglider: {fileID: 2060617565}
   drag: 25
+  minDistance: 3
 --- !u!114 &592744310
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -673,7 +675,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e91397cb66f7c46ff9f4b34868a4f7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  active: 1
   rayCastDistance: 1.75
   mask:
     serializedVersion: 2
@@ -692,6 +693,7 @@ MonoBehaviour:
     rightRotationWeight: 1
     offset: {x: 0, y: 0.09, z: 0}
     forward: {x: 0, y: 1, z: 0}
+  forward: {x: 0, y: 0, z: 1}
 --- !u!1 &962042489
 GameObject:
   m_ObjectHideFlags: 0
