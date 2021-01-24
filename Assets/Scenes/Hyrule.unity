@@ -424,6 +424,7 @@ GameObject:
   - component: {fileID: 592744310}
   - component: {fileID: 592744305}
   - component: {fileID: 592744304}
+  - component: {fileID: 592744306}
   m_Layer: 8
   m_Name: Link
   m_TagString: Untagged
@@ -477,11 +478,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f8c4cc7ec534e5e96255644742400e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCameraDistance: 10
   runSpeed: 4.5
   jumpHeight: 1.65
   jumpTime: 0.1
   glideVelocity: -4
+--- !u!114 &592744306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592744302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c7807bbed6645208d75018bc69ae47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  distance: 10
+  speed: 10
+  mask:
+    serializedVersion: 2
+    m_Bits: 55
 --- !u!4 &592744307
 Transform:
   m_ObjectHideFlags: 0

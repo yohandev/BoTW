@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent
@@ -8,11 +7,12 @@ using UnityEngine.InputSystem;
     typeof(Gravity),
     typeof(PlayerInput)
 )]
+[RequireComponent
+(
+    typeof(ThirdPersonCameraTarget)
+)]
 public class LinkController : MonoBehaviour
 {
-    [Range(1f, 10f)]
-    public float maxCameraDistance = 10f;
-
     [Range(2f, 20f)]
     public float runSpeed;
     
@@ -24,45 +24,21 @@ public class LinkController : MonoBehaviour
     [Range(-10f, -0.001f)]
     public float glideVelocity = -4f;
     
-    /// <summary>
-    /// camera rotation axis
-    /// </summary>
-    private Transform _axis;
-
-    /// <summary>
-    /// Camera transform
-    /// </summary>
-    private Transform _cam;
-
-    /// <summary>
-    /// desired camera rotation
-    /// </summary>
-    private Vector3 _camRot;
-    /// <summary>
-    /// desired camera position
-    /// </summary>
-    private Vector3 _camPos;
-
-    /// <summary>
-    /// character controller
-    /// </summary>
+    // character controller component
     private CharacterController _controller;
-
-    /// <summary>
-    /// gravity component
-    /// </summary>
-    private Gravity _gravity;
     
-    /// <summary>
-    /// player input
-    /// </summary>
+    // input component
     private PlayerInput _input;
 
-    /// <summary>
-    /// visual character foot IK
-    /// </summary>
-    private CharacterInverseKinematics _feet;
+    // visual character's inverse kinematics
+    private CharacterInverseKinematics _ik;
+
+    // camera component
+    private ThirdPersonCameraTarget _cam;
     
+    // gravity component
+    private Gravity _gravity;
+
     /// <summary>
     /// visual paraglider
     /// </summary>
@@ -89,17 +65,8 @@ public class LinkController : MonoBehaviour
 
     private void Start()
     {
-        _axis = new GameObject("Third Person Camera Axis").transform;
-        _axis.parent = transform;
-        _axis.localPosition = Vector3.zero;
-        _axis.localRotation = Quaternion.identity;
-
-        _cam = Camera.main.transform;
-        _cam.parent = _axis;
-        _cam.localRotation = Quaternion.identity;
-        _cam.localPosition = Vector3.back * maxCameraDistance;
-
         _controller = GetComponent<CharacterController>();
+        _cam = GetComponent<ThirdPersonCameraTarget>();
         _gravity = GetComponent<Gravity>();
         _input = GetComponent<PlayerInput>();
 
@@ -107,42 +74,15 @@ public class LinkController : MonoBehaviour
         
         _paraglider = character.Find("Paraglider").gameObject;
         _anim = character.GetComponent<Animator>();
-        _feet = character.GetComponent<CharacterInverseKinematics>();
+        _ik = character.GetComponent<CharacterInverseKinematics>();
         
-        _camPos = _cam.localPosition;
-
         _input.actions.FindAction("Jump").performed += _ => Jump();
         Gliding = false;
     }
 
     private void Update()
     {
-        UpdateCamera();
         UpdateMovement();
-    }
-
-    private void UpdateCamera()
-    {
-        // rotate
-        var input = _input.actions.FindAction("LookAround").ReadValue<Vector2>();
-
-        _camRot.x = ClampRot(_camRot.x, -input.y);
-        _camRot.y += input.x;
-        
-        _axis.rotation = Quaternion.Lerp(_axis.rotation, Quaternion.Euler(_camRot), Time.deltaTime * 10);
-
-        // collide
-        var now = _cam.localPosition;
-        var mask = ~LayerMask.GetMask("Link");
-        
-        _cam.localPosition = Vector3.back * maxCameraDistance;
-        if (Physics.Linecast(_axis.position, _cam.position, out var hit, mask))
-        {
-            var dist = maxCameraDistance - (_cam.position - hit.point).magnitude;
-            
-            _camPos = Vector3.back * dist;
-        }
-        _cam.localPosition = Vector3.Slerp(now, _camPos, Time.deltaTime * 10);
     }
 
     private void UpdateMovement()
@@ -154,16 +94,16 @@ public class LinkController : MonoBehaviour
         // xz
         {
             var input = _input.actions.FindAction("Move").ReadValue<Vector2>();
-            var down = Vector3.Dot(_axis.forward, Vector3.down);
+            var down = Vector3.Dot(_cam.Axis.forward, Vector3.down);
 
             var dir = new Vector3(input.x, 0, input.y);
             if (down < topDownThreshold)
             {
-                dir = _axis.TransformDirection(dir);
+                dir = _cam.Axis.TransformDirection(dir);
             }
             else
             {
-                dir = Quaternion.Euler(0, _axis.eulerAngles.y, 0) * dir;
+                dir = Quaternion.Euler(0, _cam.Axis.eulerAngles.y, 0) * dir;
             }
 
             dir.y = 0;
@@ -173,7 +113,7 @@ public class LinkController : MonoBehaviour
             {
                 _anim.SetBool("Running", !Gliding);
                 
-                _feet.Forward = dir; //Vector3.Slerp(_character.forward, dir, Time.deltaTime * 10f);
+                _ik.Forward = dir; //Vector3.Slerp(_character.forward, dir, Time.deltaTime * 10f);
                 _controller.Move(_anim.GetFloat("Velocity") * runSpeed * Time.deltaTime * dir);
             }
             else

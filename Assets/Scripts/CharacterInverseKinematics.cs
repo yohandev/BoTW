@@ -56,9 +56,7 @@ public class CharacterInverseKinematics : MonoBehaviour
     [Tooltip("Feet config")]
     public FeetIk feet;
     
-    /// <summary>
-    /// root's forward direction, to change at runtime
-    /// </summary>
+    // root's forward direction, to change at runtime
     public Vector3 Forward { get; set; } = Vector3.forward;
     
     private Transform _trans;
