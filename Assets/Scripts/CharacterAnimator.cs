@@ -1,11 +1,8 @@
 ﻿using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
-public class CharacterInverseKinematics : MonoBehaviour
+public class CharacterAnimator : MonoBehaviour
 {
-    [Tooltip("activate inverse kinematic?")]
-    public bool active = true;
-    
     [System.Serializable]
     public struct RootIk
     {
@@ -51,13 +48,14 @@ public class CharacterInverseKinematics : MonoBehaviour
     [Tooltip("Layer mask to raycast to")]
     public LayerMask mask;
 
-    [Tooltip("Root config")]
+    [Tooltip("Root IK config")]
     public RootIk root;
-    [Tooltip("Feet config")]
+    [Tooltip("Feet IK config")]
     public FeetIk feet;
     
-    // root's forward direction, to change at runtime
-    public Vector3 Forward { get; set; } = Vector3.forward;
+    [HideInInspector]
+    [Tooltip("root's forward direction, to change at runtime")]
+    public Vector3 forward = Vector3.forward;
     
     private Transform _trans;
     private Animator _anim;
@@ -81,24 +79,29 @@ public class CharacterInverseKinematics : MonoBehaviour
         var origin = _trans.position;
         origin.y = 0.5f * (feet.left.position.y + feet.right.position.y);
 
-        if (enabled && Physics.Raycast(origin + Vector3.up, Vector3.down, out var hit, rayCastDistance, mask))
+        // hit info
+        var upwards = Vector3.up;
+        var normal = Vector3.up;
+        
+        // if there's nothing to base off, ignore
+        if (Physics.Raycast(origin + Vector3.up, Vector3.down, out var hit, rayCastDistance, mask))
         {
-            // calculate upwards and forwards
-            var up = Vector3.Lerp(Vector3.up, hit.normal, root.rotationWeight);
-            var fwd = Forward;
-            
-            // set rotation
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(fwd, up), Time.deltaTime * 10);
-            
-            // calculate position
-            var pos = Vector3.Lerp(root.positionMin, root.positionMax, root.positionWeight * (1f - Vector3.Dot(Vector3.up, hit.normal)));
-
-            // set local position
-            transform.localPosition = pos;
+            // set hit info
+            upwards = Vector3.Lerp(upwards, hit.normal, root.rotationWeight);
+            normal = hit.normal;
             
             // debug
             Debug.DrawLine(origin, origin + hit.normal, Color.green);
         }
+
+        // set rotation
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(forward, upwards), Time.deltaTime * 10);
+        
+        // calculate position
+        var pos = Vector3.Lerp(root.positionMin, root.positionMax, root.positionWeight * (1f - Vector3.Dot(Vector3.up, normal)));
+
+        // set local position
+        transform.localPosition = pos;
     }
     
     private void SetFoot(AvatarIKGoal goal)
@@ -106,7 +109,7 @@ public class CharacterInverseKinematics : MonoBehaviour
         var origin = _anim.GetIKPosition(goal);
         var isLeft = goal == AvatarIKGoal.LeftFoot;
 
-        if (enabled && Physics.Raycast(origin + Vector3.up, Vector3.down, out var hit, rayCastDistance, mask))
+        if (Physics.Raycast(origin + Vector3.up, Vector3.down, out var hit, rayCastDistance, mask))
         {
             // set weight if ray cast found
             _anim.SetIKPositionWeight(goal, isLeft ? feet.leftPositionWeight : feet.rightPositionWeight);
@@ -131,5 +134,15 @@ public class CharacterInverseKinematics : MonoBehaviour
             _anim.SetIKPositionWeight(goal, 0);
             _anim.SetIKRotationWeight(goal, 0);
         }
+    }
+
+    // get the "Velocity" property from the animator, which represents the root motion velocity
+    public float RootVelocity => _anim.GetFloat("Velocity");
+
+    // get/set the "Running" property from the animator
+    public bool Running
+    {
+        get => _anim.GetBool("Running");
+        set => _anim.SetBool("Running", value);
     }
 }

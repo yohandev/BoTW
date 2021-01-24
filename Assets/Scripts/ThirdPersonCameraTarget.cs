@@ -13,6 +13,10 @@ public class ThirdPersonCameraTarget : MonoBehaviour
     [Range(0f, 100f)]
     [Tooltip("interpolation speed of camera's position/rotation")]
     public float speed = 10f;
+    
+    [Tooltip("dot product between camera and down vector threshold at which point control transitions to top down")]
+    [Range(0f, 1f)]
+    public float topDownThreshold = 0.9f;
 
     [Tooltip("layer mask the camera will collide with")]
     public LayerMask mask;
@@ -91,5 +95,29 @@ public class ThirdPersonCameraTarget : MonoBehaviour
         
         // apply position
         _cam.localPosition = Vector3.Slerp(now, _pos, Time.deltaTime * speed);
+    }
+
+    // transform joystick input to a heading direction in world space, relative to this camera 
+    public Vector3 TransformInput(Vector2 input)
+    {
+        // input space to world space
+        var dir = new Vector3(input.x, 0, input.y);
+        
+        // decide between top down and relative control
+        if (Vector3.Dot(Vector3.down, Axis.forward) < topDownThreshold)
+        {
+            // relative control
+            dir = Axis.TransformDirection(dir);
+        }
+        else
+        {
+            // top down control
+            dir = Quaternion.Euler(0, Axis.eulerAngles.y, 0) * dir;
+        }
+
+        // eliminate y direction
+        dir.y = 0;
+        // normalize
+        return dir.normalized;
     }
 }

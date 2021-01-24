@@ -58,9 +58,7 @@ public class Gravity : MonoBehaviour
         _controller.Move(vel * Time.deltaTime);
     }
 
-    /// <summary>
-    /// currently grounded?
-    /// </summary>
+    // currently grounded?
     public bool Grounded(out Vector3 normal)
     {
         var dist = _controller.height / 2f + _controller.skinWidth + 0.25f;
@@ -72,6 +70,18 @@ public class Gravity : MonoBehaviour
         }
         normal = Vector3.down;
 
+        return false;
+    }
+
+    // attempt to jump, returns if it was succesful/grounded
+    public bool Jump(float height, float time)
+    {
+        if (Grounded(out _))
+        {
+            Velocity = (height - 0.5f * force * time * time) / time;
+
+            return true;
+        }
         return false;
     }
 }

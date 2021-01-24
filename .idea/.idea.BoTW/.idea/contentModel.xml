@@ -5,9 +5,10 @@
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
         <e p="Scripts" t="Include">
-          <e p="CharacterInverseKinematics.cs" t="Include" />
+          <e p="CharacterAnimator.cs" t="Include" />
           <e p="Gravity.cs" t="Include" />
           <e p="LinkController.cs" t="Include" />
+          <e p="ParagliderTarget.cs" t="Include" />
           <e p="ThirdPersonCameraTarget.cs" t="Include" />
         </e>
         <e p="Shaders" t="Include">
