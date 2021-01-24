@@ -59,14 +59,14 @@ public class LinkController : MonoBehaviour
     private PlayerInput _input;
 
     /// <summary>
+    /// visual character foot IK
+    /// </summary>
+    private FootIK _feet;
+    
+    /// <summary>
     /// visual paraglider
     /// </summary>
     private GameObject _paraglider;
-
-    /// <summary>
-    /// visual character
-    /// </summary>
-    private Transform _character;
 
     /// <summary>
     /// visual character animator
@@ -103,9 +103,11 @@ public class LinkController : MonoBehaviour
         _gravity = GetComponent<Gravity>();
         _input = GetComponent<PlayerInput>();
 
-        _character = transform.Find("Character");
-        _paraglider = _character.Find("Paraglider").gameObject;
-        _anim = _character.GetComponent<Animator>();
+        var character = transform.Find("Character");
+        
+        _paraglider = character.Find("Paraglider").gameObject;
+        _anim = character.GetComponent<Animator>();
+        _feet = character.GetComponent<FootIK>();
         
         _camPos = _cam.localPosition;
 
@@ -171,7 +173,7 @@ public class LinkController : MonoBehaviour
             {
                 _anim.SetBool("Running", !Gliding);
                 
-                _character.rotation = Quaternion.Slerp(_character.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10);
+                _feet.Forward = dir; //Vector3.Slerp(_character.forward, dir, Time.deltaTime * 10f);
                 _controller.Move(_anim.GetFloat("Velocity") * runSpeed * Time.deltaTime * dir);
             }
             else

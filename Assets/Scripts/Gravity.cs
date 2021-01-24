@@ -33,7 +33,7 @@ public class Gravity : MonoBehaviour
     private void Start()
     {
         _controller = GetComponent<CharacterController>();
-        _controller.slopeLimit = 80f; // make this arbitrarily large
+        _controller.slopeLimit = slopeLimit;
     }
 
     private void Update()
@@ -48,11 +48,9 @@ public class Gravity : MonoBehaviour
         {
             vel.x += (1f - normal.y) * normal.x * (1f - slideFriction);
             vel.z += (1f - normal.y) * normal.z * (1f - slideFriction);
-            Debug.Log("not grounded");
         }
         else
         {
-            Debug.Log("grounded");
             Velocity = Mathf.Max(0, Velocity);
         }
         
