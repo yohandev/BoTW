@@ -9,6 +9,7 @@
           <e p="Gravity.cs" t="Include" />
           <e p="LinkController.cs" t="Include" />
           <e p="Movement.cs" t="Include" />
+          <e p="Movement2.cs" t="Include" />
           <e p="ParagliderTarget.cs" t="Include" />
           <e p="ThirdPersonCameraTarget.cs" t="Include" />
         </e>
