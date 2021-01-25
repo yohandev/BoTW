@@ -2,7 +2,7 @@
 using UnityEngine;
 
 // assigned to the link gameobject, *not* the paraglider itself
-[RequireComponent(typeof(Gravity))]
+[RequireComponent(typeof(Movement))]
 public class ParagliderTarget : MonoBehaviour
 {
     [Tooltip("game object visually representing the paraglider")]
@@ -23,12 +23,11 @@ public class ParagliderTarget : MonoBehaviour
         set => paraglider.SetActive(value);
     }
     
-    // gravity component
-    private Gravity _gravity;
+    private Movement _move;
 
     private void Start()
     {
-        _gravity = GetComponent<Gravity>();
+        _move = GetComponent<Movement>();
 
         Gliding = false;
     }
@@ -42,6 +41,6 @@ public class ParagliderTarget : MonoBehaviour
         }
         
         // simple F = Bv model
-        _gravity.drag = Gliding ? -(drag * _gravity.Velocity) : 0;
+        _move.YDrag = Gliding ? -(drag * _move.YVel) : 0;
     }
 }

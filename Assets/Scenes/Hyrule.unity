@@ -420,12 +420,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 592744307}
-  - component: {fileID: 592744303}
   - component: {fileID: 592744310}
   - component: {fileID: 592744305}
-  - component: {fileID: 592744304}
   - component: {fileID: 592744306}
   - component: {fileID: 592744308}
+  - component: {fileID: 592744309}
   m_Layer: 8
   m_Name: Link
   m_TagString: Untagged
@@ -433,40 +432,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!143 &592744303
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 592744302}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Height: 1.75
-  m_Radius: 0.25
-  m_SlopeLimit: 50
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: -0.25, z: 0}
---- !u!114 &592744304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 592744302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27fdfa186f328467db2b85a083bad6fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  force: 50
-  drag: 0
-  slopeLimit: 45
-  slideFriction: 0.3
 --- !u!114 &592744305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -479,10 +444,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09f8c4cc7ec534e5e96255644742400e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runSpeed: 4.5
-  glideSpeed: 9
-  jumpHeight: 1.65
-  jumpTime: 0.1
+  speeds:
+    running: 4.5
+    gliding: 9
+  jump:
+    height: 1.65
+    time: 0.1
 --- !u!114 &592744306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -532,6 +499,27 @@ MonoBehaviour:
   paraglider: {fileID: 2060617565}
   drag: 25
   minDistance: 3
+--- !u!114 &592744309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592744302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee2d7fad13514c7483ccdd53b03ef7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collider:
+    radius: 0.25
+    head: 0.75
+    feet: 1
+    mask:
+      serializedVersion: 2
+      m_Bits: 55
+  gravity: 50
+  slopeLimit: 60
 --- !u!114 &592744310
 MonoBehaviour:
   m_ObjectHideFlags: 0

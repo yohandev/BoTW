@@ -1,84 +1,67 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent
-(
-    typeof(CharacterController),
-    typeof(Gravity),
-    typeof(PlayerInput)
-)]
-[RequireComponent
-(
-    typeof(ThirdPersonCameraTarget)
-)]
+[RequireComponent(typeof(Movement), typeof(PlayerInput))]
 public class LinkController : MonoBehaviour
 {
-    [Tooltip("link's running speed")]
-    [Range(2f, 20f)]
-    public float runSpeed = 4.5f;
+    [Serializable]
+    public struct Speeds
+    {
+        [Tooltip("link's running speed on flat ground")]
+        [Range(0.1f, 20f)]
+        public float running;
 
-    [Tooltip("link's gliding speed")]
-    [Range(2f, 20f)]
-    public float glideSpeed = 9f;
+        [Tooltip("link's gliding speed in the xz plane")]
+        [Range(0.1f, 20f)]
+        public float gliding;
+    }
+
+    [Tooltip("link's speeds at various states")]
+    public Speeds speeds = new Speeds { running = 4.5f, gliding = 9.0f };
+
+    [Serializable]
+    public struct Jump
+    {
+        [Tooltip("maximum height link will reach when jumping on flat ground")]
+        [Range(0f, 5f)]
+        public float height;
+
+        [Tooltip("time from ground to highest point in link's jump")]
+        [Range(0.001f, 1f)]
+        public float time;
+    }
+
+    [Tooltip("link's jump characteristics")]
+    public Jump jump = new Jump { height = 1.65f, time = 0.1f };
     
-    [Tooltip("maximum height link will reach when jumping in ideal situations")]
-    [Range(0f, 5f)]
-    public float jumpHeight = 1.65f;
-    
-    [Tooltip("time it takes link to reach the highest point in his jump, from the ground")]
-    [Range(0.001f, 10f)]
-    public float jumpTime = 0.1f;
-    
-    // this behaviour links all other behaviours
-    private CharacterController _controller;
     private ThirdPersonCameraTarget _cam;
     private ParagliderTarget _glider;
     private CharacterAnimator _anim;
-    private Gravity _gravity;
+    private Movement _move;
 
-    // move direction input
     private Vector2 _dir;
     
     private void Start()
     {
-        _controller = GetComponent<CharacterController>();
-        _anim = GetComponentInChildren<CharacterAnimator>();
         _cam = GetComponent<ThirdPersonCameraTarget>();
         _glider = GetComponent<ParagliderTarget>();
-        _gravity = GetComponent<Gravity>();
+        _anim = GetComponentInChildren<CharacterAnimator>();
+        _move = GetComponent<Movement>();
     }
 
     private void Update()
     {
-        // has movement?
-        if (_dir.sqrMagnitude > 0)
-        {
-            // determine direction in plane space
-            var dir = _cam.TransformInput(_dir);
-            
-            // direction on plane
-            var norm = _gravity.GroundedRaycast(out var hit, 0.25f) ? hit.normal : Vector3.up;
+        // speed and direction
+        var dir = _cam.TransformInput(_dir);
+        var vel = _glider.Gliding ? speeds.gliding : speeds.running; // _anim.RootVelocity * 
+        
+        // move character
+        _move.Input = vel * new Vector2(dir.x, dir.z);
 
-            // transform direction from plane space to world space
-            dir = Vector3.ProjectOnPlane(dir, norm);
-            
-            // determine speed
-            var vel = _glider.Gliding ? glideSpeed : _anim.RootVelocity * runSpeed;
-            
-            // set visual forward direction
-            _anim.forward = dir;
-            
-            // move character
-            _controller.Move(Time.deltaTime * vel * dir);
-            
-            // animation
-            _anim.Running = _gravity.Grounded(dir);
-        }
-        else
-        {
-            // no movement -> idle animation
-            _anim.Running = false;
-        }
+        // visuals
+        _anim.forward = dir;
+        _anim.Running = _dir.sqrMagnitude > 0 && _move.Grounded;
     }
 
     // called by the input system
@@ -90,7 +73,7 @@ public class LinkController : MonoBehaviour
     // called by input system
     private void OnJump()
     {
-        _glider.Gliding = !_gravity.Jump(jumpHeight, jumpTime);
+        _glider.Gliding = !_move.Jump(jump.height);
     }
 
     // called by input system
