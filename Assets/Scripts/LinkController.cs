@@ -1,16 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent
-(
-    typeof(CharacterController),
-    typeof(Gravity),
-    typeof(PlayerInput)
-)]
-[RequireComponent
-(
-    typeof(ThirdPersonCameraTarget)
-)]
+[RequireComponent(typeof(PlayerInput), typeof(ThirdPersonCameraTarget), typeof(Movement))]
 public class LinkController : MonoBehaviour
 {
     [Tooltip("link's running speed")]
@@ -30,22 +21,20 @@ public class LinkController : MonoBehaviour
     public float jumpTime = 0.1f;
     
     // this behaviour links all other behaviours
-    private CharacterController _controller;
     private ThirdPersonCameraTarget _cam;
     private ParagliderTarget _glider;
     private CharacterAnimator _anim;
-    private Gravity _gravity;
+    private Movement _move;
 
     // move direction input
     private Vector2 _dir;
     
     private void Start()
     {
-        _controller = GetComponent<CharacterController>();
         _anim = GetComponentInChildren<CharacterAnimator>();
         _cam = GetComponent<ThirdPersonCameraTarget>();
         _glider = GetComponent<ParagliderTarget>();
-        _gravity = GetComponent<Gravity>();
+        _move = GetComponent<Movement>();
     }
 
     private void Update()
@@ -56,26 +45,23 @@ public class LinkController : MonoBehaviour
             // determine direction in plane space
             var dir = _cam.TransformInput(_dir);
             
-            // direction on plane
-            var norm = _gravity.GroundedRaycast(out var hit, 0.25f) ? hit.normal : Vector3.up;
-
-            // transform direction from plane space to world space
-            dir = Vector3.ProjectOnPlane(dir, norm);
-            
             // determine speed
             var vel = _glider.Gliding ? glideSpeed : _anim.RootVelocity * runSpeed;
             
             // set visual forward direction
-            _anim.forward = dir;
+            _anim.forward = new Vector3(dir.x, 0, dir.y);
             
             // move character
-            _controller.Move(Time.deltaTime * vel * dir);
+            _move.Direction = vel * dir;
             
             // animation
-            _anim.Running = _gravity.Grounded(dir);
+            _anim.Running = _move.Grounded;
         }
         else
         {
+            // update direction
+            _move.Direction = Vector2.zero;
+            
             // no movement -> idle animation
             _anim.Running = false;
         }
@@ -90,7 +76,7 @@ public class LinkController : MonoBehaviour
     // called by input system
     private void OnJump()
     {
-        _glider.Gliding = !_gravity.Jump(jumpHeight, jumpTime);
+        _glider.Gliding = !_move.Jump(jumpHeight);
     }
 
     // called by input system

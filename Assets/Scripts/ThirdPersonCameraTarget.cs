@@ -98,7 +98,7 @@ public class ThirdPersonCameraTarget : MonoBehaviour
     }
 
     // transform joystick input to a heading direction in world space, relative to this camera 
-    public Vector3 TransformInput(Vector2 input)
+    public Vector2 TransformInput(Vector2 input)
     {
         // input space to world space
         var dir = new Vector3(input.x, 0, input.y);
@@ -118,6 +118,9 @@ public class ThirdPersonCameraTarget : MonoBehaviour
         // eliminate y direction
         dir.y = 0;
         // normalize
-        return dir.normalized;
+        dir.Normalize();
+        
+        // back to 2D
+        return new Vector2(dir.x, dir.z);
     }
 }
