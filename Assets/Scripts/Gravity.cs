@@ -33,7 +33,7 @@ public class Gravity : MonoBehaviour
     private void Start()
     {
         _controller = GetComponent<CharacterController>();
-        _controller.slopeLimit = slopeLimit;
+        _controller.slopeLimit = 80f;
     }
 
     private void Update()
@@ -44,39 +44,76 @@ public class Gravity : MonoBehaviour
         // determine velocity
         var vel = Vector3.up * Velocity;
         
-        if (!Grounded(out var normal))
+        if (!Grounded(out var normal, out var steepness))
         {
-            vel.x += (1f - normal.y) * normal.x * (1f - slideFriction);
-            vel.z += (1f - normal.y) * normal.z * (1f - slideFriction);
+            var mult = steepness / slopeLimit;
+            
+            vel.x += mult * (1f - normal.y) * normal.x * (1f - slideFriction);
+            vel.z += mult * (1f - normal.y) * normal.z * (1f - slideFriction);
         }
-        else
+        else if (Velocity < 0)
         {
-            Velocity = Mathf.Max(0, Velocity);
+            Velocity *= 0.8f;
         }
+        
+        Debug.Log(vel);
         
         // move
         _controller.Move(vel * Time.deltaTime);
     }
 
-    // currently grounded?
-    public bool Grounded(out Vector3 normal)
+    // currently grounded or otherwise able to move in direction, while considering the slope?
+    public bool Grounded(Vector3 dir)
     {
-        var dist = _controller.height / 2f + _controller.skinWidth + 0.25f;
-        var pos = _controller.transform.position + _controller.center;
-
-        if (Physics.Raycast(pos, Vector3.down, out var hit, dist))
+        if (GroundedRaycast(out var hit, 0.25f))
         {
-            return Vector3.Angle(Vector3.up, normal = hit.normal) <= slopeLimit;
+            return Vector3.Angle(Vector3.up, hit.normal) <= slopeLimit || Vector3.ProjectOnPlane(dir, hit.normal).y < 0;
         }
-        normal = Vector3.down;
+        return false;
+    }
+    
+    // currently grounded, while considering the slope?
+    public bool Grounded(out Vector3 normal, out float steepness)
+    {
+        // initial ray-cast with possibility of being grounded
+        if (GroundedRaycast(out var hit, 0.25f))
+        {
+            return (steepness = Vector3.Angle(Vector3.up, normal = hit.normal)) <= slopeLimit;
+        }
+        // try with more distance, to get the normal 
+        if (GroundedRaycast(out var hit2, 100f))
+        {
+            steepness = Vector3.Angle(Vector3.up, normal = hit2.normal);
+        }
+        // in the sky or something...
+        else
+        {
+            normal = Vector3.down;
+            steepness = 0;
+        }
 
         return false;
+    }
+
+    // currently grounded, with no consideration for slope
+    public bool Grounded()
+    {
+        return GroundedRaycast(out _, 0.25f);
+    }
+
+    // perform the grounded raycast hit
+    public bool GroundedRaycast(out RaycastHit hit, float threshold)
+    {
+        var dist = _controller.height / 2f + _controller.skinWidth + threshold;
+        var pos = _controller.transform.position + _controller.center;
+
+        return Physics.Raycast(pos, Vector3.down, out hit, dist);
     }
 
     // attempt to jump, returns if it was successful/grounded
     public bool Jump(float height, float time)
     {
-        if (Grounded(out _))
+        if (Grounded())
         {
             Velocity = (height - 0.5f * force * time * time) / time;
 

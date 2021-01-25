@@ -53,8 +53,14 @@ public class LinkController : MonoBehaviour
         // has movement?
         if (_dir.sqrMagnitude > 0)
         {
-            // determine direction in world space
+            // determine direction in plane space
             var dir = _cam.TransformInput(_dir);
+            
+            // direction on plane
+            var norm = _gravity.GroundedRaycast(out var hit, 0.25f) ? hit.normal : Vector3.up;
+
+            // transform direction from plane space to world space
+            dir = Vector3.ProjectOnPlane(dir, norm);
             
             // determine speed
             var vel = _glider.Gliding ? glideSpeed : _anim.RootVelocity * runSpeed;
@@ -64,10 +70,15 @@ public class LinkController : MonoBehaviour
             
             // move character
             _controller.Move(Time.deltaTime * vel * dir);
+            
+            // animation
+            _anim.Running = _gravity.Grounded(dir);
         }
-        
-        // animation
-        _anim.Running = _dir.sqrMagnitude > 0 && _gravity.Grounded(out _);
+        else
+        {
+            // no movement -> idle animation
+            _anim.Running = false;
+        }
     }
 
     // called by the input system
