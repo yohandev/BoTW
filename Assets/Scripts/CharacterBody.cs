@@ -17,6 +17,9 @@ public class CharacterBody : MonoBehaviour
 
     [Tooltip("maximum speed to be snapped to the ground")]
     public float snapThreshold;   // maximum speed to be snapped to the ground
+
+    [Tooltip("extra down ward gravity force to jump faster")]
+    public float extraGravity;    // extra downward gravity force to jump faster
     
     private Rigidbody m_rbody;    // character controller component
     private Collider m_collider;  // collider component, whatever shape
@@ -148,16 +151,22 @@ public class CharacterBody : MonoBehaviour
     /// </summary>
     private void AccelerateY()
     {
-        // currently falling or not jump input
-        if (m_ground.StepSinceContact > 1 || !m_input.Jump) { return; }
-        
-        // initial velocity using simple newtonian physics eq
-        var v0 = Mathf.Sqrt(-2f * Physics.gravity.y * jump);
+        // currently falling
+        if (m_ground.StepSinceContact > 3)
+        {
+            m_velocity += extraGravity * Time.deltaTime * Vector3.down;
+        }
+        // jump
+        else if (m_ground.StepSinceContact <= 1 && m_input.Jump)
+        {
+            // initial velocity using simple newtonian physics eq
+            var v0 = Mathf.Sqrt(-2f * (Physics.gravity.y - extraGravity) * jump);
 
-        // apply velocity
-        m_velocity += v0 * Vector3.up;
-        
-        // TODO jump along m_ground.Normal if steep
+            // apply velocity
+            m_velocity += v0 * Vector3.up;
+
+            // TODO jump along m_ground.Normal if steep
+        }
     }
 
     /// <summary>

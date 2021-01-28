@@ -519,8 +519,9 @@ MonoBehaviour:
   mass: 1
   speed: 10
   acceleration: 7.5
-  jump: 2.5
+  jump: 0.75
   snapThreshold: 100
+  extraGravity: 25
 --- !u!114 &929959034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -592,8 +593,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 929959028}
   active: 0
-  coefficient: 100
-  distance: 2.65
+  coefficient: 400
+  distance: 1
 --- !u!1 &1395301377
 GameObject:
   m_ObjectHideFlags: 0
