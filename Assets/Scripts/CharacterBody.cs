@@ -1,23 +1,28 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 /// <summary>
 /// a rigidbody based character controller
 /// </summary>
-public class RigidbodyController : MonoBehaviour
+public class CharacterBody : MonoBehaviour
 {
     [Tooltip("mass of the rigidbody")]
     public float mass;            // mass of the rigidbody
     
     [Tooltip("movement speed on the xz plane")]
     public float speed;           // movement speed on the xz plane
+    [Tooltip("acceleration speed on the xz plane")]
+    public float accel;           // accelerstion speed on the xz plane
     [Tooltip("jump height on flat ground")]
     public float jump;            // jump height on flat ground
     
-    private Rigidbody m_rbody;    // rigidbody component
+    private Rigidbody m_rbody;    // character controller component
     
     private Ground m_ground;      // current ground
     private Input m_input;        // current input
 
+    //private Vector3 m_velocity;   // current velocity
+    
     /// <summary>
     /// move along the current ground plane, or xz plane if not grounded, in the
     /// given directions. inputs are magnitude clamped and adjusted to this component's
@@ -80,6 +85,8 @@ public class RigidbodyController : MonoBehaviour
             m_rbody.mass = mass;
             // interpolation
             m_rbody.interpolation = RigidbodyInterpolation.Interpolate;
+            // works only with dynamic bodies
+            m_rbody.isKinematic = false;
         }
     }
 
@@ -90,6 +97,9 @@ public class RigidbodyController : MonoBehaviour
         
         m_ground.Reset();
         m_input.Reset();
+        
+        //m_rbody.Move(m_velocity * Time.deltaTime);
+        //transform.Translate(m_velocity);
     }
 
     /// <summary>
@@ -98,19 +108,18 @@ public class RigidbodyController : MonoBehaviour
     // ReSharper disable once InconsistentNaming
     private void AccelerateXZ()
     {
-        // get the current *actual* velocity
         var velocity = m_rbody.velocity;
         
         // cache the ground normal vector
         var normal = m_ground.Normal;
         // desired velocity in local space
-        var input = Time.fixedDeltaTime * speed * m_input.XZ;
-
+        var input = speed * m_input.XZ;
+        
         // project on plane with normalized normal shortcut
         // vec - normal * dot(vec, normal)
         var rtAxis = (Vector3.right - normal * normal.x).normalized;
         var fwAxis = (Vector3.forward - normal * normal.z).normalized;
-
+        
         // how much velocity is currently going on each axis
         var rtNow = Vector3.Dot(velocity, rtAxis);
         var fwNow = Vector3.Dot(velocity, fwAxis);
@@ -118,12 +127,8 @@ public class RigidbodyController : MonoBehaviour
         // combine acceleration on their axes to one vector
         var acceleration = rtAxis * (input.x - rtNow) + fwAxis * (input.z - fwNow);
 
-        // acceleration is high enough to instantaneously change directions
-        m_rbody.velocity += acceleration;
-        
-        // debug
-        Debug.DrawLine(m_ground.Point, m_ground.Point + acceleration, Color.red);
-        Debug.DrawLine(m_ground.Point, m_ground.Point + velocity, Color.green);
+        // accelerate
+        m_rbody.velocity += acceleration * Mathf.Clamp01(Time.deltaTime * accel);
     }
 
     /// <summary>
@@ -131,8 +136,19 @@ public class RigidbodyController : MonoBehaviour
     /// </summary>
     private void AccelerateY()
     {
+        // currently falling
+        if (!m_ground.HasContact)
+        {
+            //m_velocity += Physics.gravity * Time.deltaTime;
+
+            return;
+        }
+        
+        // floor
+        //m_velocity.y = Mathf.Max(0, m_velocity.y);
+        
         // only jump if on ground and has input
-        if (!m_ground.HasContact || !m_input.Jump) { return; }
+        if (!m_input.Jump) { return; }
         
         // initial velocity using simple newtonian physics eq
         var v0 = Mathf.Sqrt(-2f * Physics.gravity.y * jump);
@@ -142,23 +158,25 @@ public class RigidbodyController : MonoBehaviour
         
         // TODO jump along m_ground.Normal if steep
     }
-    
-    /// <summary>
-    /// called the first time there's collision
-    /// </summary>
-    private void OnCollisionEnter(Collision collision)
+
+//    /// <summary>
+//    /// called after every move
+//    /// </summary>
+//    private void OnControllerColliderHit(ControllerColliderHit hit)
+//    {
+//        m_ground.Add(hit.normal);
+//    }
+
+    private void OnCollisionEnter(Collision other)
     {
-        OnCollisionStay(collision);
+        OnCollisionStay(other);
     }
 
-    /// <summary>
-    /// called every time but the first there's collision, after fixed update
-    /// </summary>
-    private void OnCollisionStay(Collision collision)
+    private void OnCollisionStay(Collision other)
     {
-        for (var i = 0; i < collision.contactCount; i++)
+        for (var i = 0; i < other.contactCount; i++)
         {
-            m_ground.Add(collision.GetContact(i));
+            m_ground.Add(other.GetContact(i).normal);
         }
     }
 
@@ -170,11 +188,11 @@ public class RigidbodyController : MonoBehaviour
         get
         {
             // get or add
-            if (!gameObject.TryGetComponent(out Rigidbody rb))
+            if (!gameObject.TryGetComponent(out Rigidbody ctrl))
             {
-                rb = gameObject.AddComponent<Rigidbody>();
+                ctrl = gameObject.AddComponent<Rigidbody>();
             }
-            return rb;
+            return ctrl;
         }
     }
 
@@ -225,11 +243,6 @@ public class RigidbodyController : MonoBehaviour
         private Vector3? m_normal;
 
         /// <summary>
-        /// last point of contact
-        /// </summary>
-        private Vector3 m_point;
-        
-        /// <summary>
         /// get the normalized, average vector of all the grounds currently in contact
         /// </summary>
         public Vector3 Normal => m_normal?.normalized ?? Vector3.up;
@@ -240,17 +253,11 @@ public class RigidbodyController : MonoBehaviour
         public bool HasContact => m_normal.HasValue;
 
         /// <summary>
-        /// get the last point of contact on the ground, if grounded(for debugging)
+        /// aggregate collision's normal vector to self
         /// </summary>
-        public Vector3 Point => m_point;
-        
-        /// <summary>
-        /// aggregate collision to self
-        /// </summary>
-        public void Add(ContactPoint b)
+        public void Add(Vector3 normal)
         {
-            m_normal = (m_normal ?? default) + b.normal;
-            m_point = b.point;
+            m_normal = (m_normal ?? default) + normal;
         }
 
         /// <summary>
@@ -259,7 +266,6 @@ public class RigidbodyController : MonoBehaviour
         public void Reset()
         {
             m_normal = null;
-            m_point = default;
         }
     }
 }

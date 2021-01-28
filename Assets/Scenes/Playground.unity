@@ -382,7 +382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd6043bde05a7fc4cba197d06915c1e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Damping: {x: 0.1, y: 0.5, z: 0.3}
+  Damping: {x: 0.1, y: 0.5, z: 0.5}
   ShoulderOffset: {x: 0.5, y: -0.4, z: 0}
   VerticalArmLength: 0.4
   CameraSide: 0.5
@@ -420,7 +420,7 @@ GameObject:
   - component: {fileID: 929959033}
   - component: {fileID: 929959034}
   - component: {fileID: 929959036}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Link
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -516,7 +516,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mass: 1
-  speed: 350
+  speed: 10
+  accel: 5
   jump: 2.5
 --- !u!114 &929959034
 MonoBehaviour:
@@ -574,6 +575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1395301378}
+  threshold: 0.9
 --- !u!1 &1395301377
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,7 +585,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1395301378}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Camera Target
   m_TagString: Untagged
   m_Icon: {fileID: 0}

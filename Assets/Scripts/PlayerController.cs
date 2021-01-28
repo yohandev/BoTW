@@ -5,10 +5,10 @@ using UnityEngine.InputSystem;
 /// player controller for Link. Acts as input agent for Link's rigidbody
 /// controller, only inputs are from the player and not AI
 /// </summary>
-[RequireComponent(typeof(RigidbodyController), typeof(CameraController), typeof(PlayerInput))]
+[RequireComponent(typeof(CharacterBody), typeof(CameraController), typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
-    private RigidbodyController m_rbody;    // rigidbody controller component
+    private CharacterBody m_rbody;    // rigidbody controller component
     private CameraController m_cam;         // camera controller component
     
     private Vector2 m_moveAxis;             // desired movement since last update
@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        m_rbody = gameObject.GetComponent<RigidbodyController>();
+        m_rbody = gameObject.GetComponent<CharacterBody>();
         m_cam = gameObject.GetComponent<CameraController>();
         
         m_moveAxis = Vector2.zero;
@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        m_rbody.Move(m_moveAxis);
+        m_rbody.Move(m_cam.TransformDirection(m_moveAxis));
         m_cam.Move(m_lookAxis);
     }
 
