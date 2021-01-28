@@ -144,7 +144,7 @@ public class CharacterBody : MonoBehaviour
     private void AccelerateY()
     {
         // currently falling or not jump input
-        if (!m_ground.HasContact || !m_input.Jump) { return; }
+        if (m_ground.StepSinceContact > 1 || !m_input.Jump) { return; }
         
         // initial velocity using simple newtonian physics eq
         var v0 = Mathf.Sqrt(-2f * Physics.gravity.y * jump);
@@ -196,29 +196,16 @@ public class CharacterBody : MonoBehaviour
 
     private void AccelerateFriction()
     {
-        GetComponent<MeshRenderer>().material.SetColor("_BaseColor", m_ground.HasContact ? Color.black : Color.white);
-
-        if (m_ground.HasContact)
-        {
-            //m_rbody.velocity += Vector3.down * 1;
-        }
-
-            // only apply friction if there's no input and is grounded
+        // only apply friction if there's no input and is grounded
         if (!m_input.None || !m_ground.HasContact) { return; }
-        
-        
-        
-        // TODO
-        //m_rbody.velocity /= 2;
-    }
 
-//    /// <summary>
-//    /// called after every move
-//    /// </summary>
-//    private void OnControllerColliderHit(ControllerColliderHit hit)
-//    {
-//        m_ground.Add(hit.normal);
-//    }
+        // ground normal
+        var normal = m_ground.Normal;
+        
+        //m_velocity.x += (1f - normal.y) * normal.x * (1f - 0.3f);
+        //m_velocity.z += (1f - normal.y) * normal.z * (1f - 0.3f);
+        
+    }
 
     private void OnCollisionEnter(Collision other)
     {
