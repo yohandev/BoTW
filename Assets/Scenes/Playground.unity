@@ -517,8 +517,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mass: 1
   speed: 10
-  accel: 5
+  acceleration: 7.5
   jump: 2.5
+  snapThreshold: 100
 --- !u!114 &929959034
 MonoBehaviour:
   m_ObjectHideFlags: 0

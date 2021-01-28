@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// a rigidbody based character controller
@@ -12,16 +11,20 @@ public class CharacterBody : MonoBehaviour
     [Tooltip("movement speed on the xz plane")]
     public float speed;           // movement speed on the xz plane
     [Tooltip("acceleration speed on the xz plane")]
-    public float accel;           // accelerstion speed on the xz plane
+    public float acceleration;    // acceleration speed on the xz plane
     [Tooltip("jump height on flat ground")]
     public float jump;            // jump height on flat ground
+
+    [Tooltip("maximum speed to be snapped to the ground")]
+    public float snapThreshold;   // maximum speed to be snapped to the ground
     
     private Rigidbody m_rbody;    // character controller component
+    private Collider m_collider;  // collider component, whatever shape
     
     private Ground m_ground;      // current ground
     private Input m_input;        // current input
 
-    //private Vector3 m_velocity;   // current velocity
+    private Vector3 m_velocity;   // current velocity
     
     /// <summary>
     /// move along the current ground plane, or xz plane if not grounded, in the
@@ -63,7 +66,8 @@ public class CharacterBody : MonoBehaviour
     private void Start()
     {
         m_rbody = Rigidbody;
-        
+        m_collider = Collider;
+
         m_ground = new Ground();
         m_input = new Input();
         
@@ -92,14 +96,19 @@ public class CharacterBody : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // get current, actual velocity
+        m_velocity = m_rbody.velocity;
+        
+        AccelerateFriction();
+        AccelerateGround();
         AccelerateXZ();
         AccelerateY();
         
         m_ground.Reset();
         m_input.Reset();
         
-        //m_rbody.Move(m_velocity * Time.deltaTime);
-        //transform.Translate(m_velocity);
+        // set modified velocity
+        m_rbody.velocity = m_velocity;
     }
 
     /// <summary>
@@ -108,8 +117,6 @@ public class CharacterBody : MonoBehaviour
     // ReSharper disable once InconsistentNaming
     private void AccelerateXZ()
     {
-        var velocity = m_rbody.velocity;
-        
         // cache the ground normal vector
         var normal = m_ground.Normal;
         // desired velocity in local space
@@ -121,14 +128,14 @@ public class CharacterBody : MonoBehaviour
         var fwAxis = (Vector3.forward - normal * normal.z).normalized;
         
         // how much velocity is currently going on each axis
-        var rtNow = Vector3.Dot(velocity, rtAxis);
-        var fwNow = Vector3.Dot(velocity, fwAxis);
+        var rtNow = Vector3.Dot(m_velocity, rtAxis);
+        var fwNow = Vector3.Dot(m_velocity, fwAxis);
 
         // combine acceleration on their axes to one vector
-        var acceleration = rtAxis * (input.x - rtNow) + fwAxis * (input.z - fwNow);
+        var dVdt = rtAxis * (input.x - rtNow) + fwAxis * (input.z - fwNow);
 
         // accelerate
-        m_rbody.velocity += acceleration * Mathf.Clamp01(Time.deltaTime * accel);
+        m_velocity += dVdt * Mathf.Clamp01(Time.deltaTime * acceleration);
     }
 
     /// <summary>
@@ -136,27 +143,73 @@ public class CharacterBody : MonoBehaviour
     /// </summary>
     private void AccelerateY()
     {
-        // currently falling
-        if (!m_ground.HasContact)
-        {
-            //m_velocity += Physics.gravity * Time.deltaTime;
-
-            return;
-        }
-        
-        // floor
-        //m_velocity.y = Mathf.Max(0, m_velocity.y);
-        
-        // only jump if on ground and has input
-        if (!m_input.Jump) { return; }
+        // currently falling or not jump input
+        if (!m_ground.HasContact || !m_input.Jump) { return; }
         
         // initial velocity using simple newtonian physics eq
         var v0 = Mathf.Sqrt(-2f * Physics.gravity.y * jump);
 
         // apply velocity
-        m_rbody.velocity += v0 * Vector3.up;
+        m_velocity += v0 * Vector3.up;
         
         // TODO jump along m_ground.Normal if steep
+    }
+
+    /// <summary>
+    /// snap to ground
+    /// </summary>
+    private void AccelerateGround()
+    {
+        // current speed
+        var vel = m_velocity.magnitude;
+        // raycast distance; 0.5 is an arbitrary buffer
+        var probeDist = m_collider.bounds.size.y / 2 + 0.5f;
+        
+        // series of check before snapping
+        if (false
+            // don't snap too early
+            || m_ground.StepSinceContact > 1
+            || m_input.StepSinceJump <= 2
+            // preserve momentum if sufficiently fast
+            || vel > snapThreshold
+            // if no ground detected, can't possibly snap
+            || !Physics.Raycast(m_rbody.position, Vector3.down, out var hit, probeDist))
+        {
+            return;
+        }
+//        if (hit.normal.y < GetMinDot(hit.collider.gameObject.layer))
+//        {
+//            return;
+//        }
+
+        // register collision
+        m_ground.Add(hit.normal);
+        
+        // how much velocity is currently snapping
+        var dot = Vector3.Dot(m_velocity, hit.normal);
+        // "snap" to ground
+        if (dot > 0f)
+        {
+            m_velocity = (m_velocity - hit.normal * dot).normalized * vel;
+        }
+    }
+
+    private void AccelerateFriction()
+    {
+        GetComponent<MeshRenderer>().material.SetColor("_BaseColor", m_ground.HasContact ? Color.black : Color.white);
+
+        if (m_ground.HasContact)
+        {
+            //m_rbody.velocity += Vector3.down * 1;
+        }
+
+            // only apply friction if there's no input and is grounded
+        if (!m_input.None || !m_ground.HasContact) { return; }
+        
+        
+        
+        // TODO
+        //m_rbody.velocity /= 2;
     }
 
 //    /// <summary>
@@ -188,11 +241,27 @@ public class CharacterBody : MonoBehaviour
         get
         {
             // get or add
-            if (!gameObject.TryGetComponent(out Rigidbody ctrl))
+            if (!gameObject.TryGetComponent(out Rigidbody cmp))
             {
-                ctrl = gameObject.AddComponent<Rigidbody>();
+                cmp = gameObject.AddComponent<Rigidbody>();
             }
-            return ctrl;
+            return cmp;
+        }
+    }
+
+    /// <summary>
+    /// gets the Collider component, or adds a capsule to this game object
+    /// </summary>
+    private Collider Collider
+    {
+        get
+        {
+            // get or add
+            if (!gameObject.TryGetComponent(out Collider cmp))
+            {
+                cmp = gameObject.AddComponent<CapsuleCollider>();
+            }
+            return cmp;   
         }
     }
 
@@ -206,6 +275,11 @@ public class CharacterBody : MonoBehaviour
         /// m_vel.y > 0 is desired jump
         /// </summary>
         private Vector3 m_vel;
+
+        /// <summary>
+        /// update states since jumping
+        /// </summary>
+        private int m_stepSinceJump;
         
         /// <summary>
         /// get the input on the x and z axis in world space, with y = 0 and magnitude ≤ 1.0
@@ -217,18 +291,33 @@ public class CharacterBody : MonoBehaviour
         /// get whether a jump is desired
         /// </summary>
         public bool Jump => m_vel.y > 0;
-        
+
         /// <summary>
         /// aggregate input to self
         /// </summary>
-        public void Add(Vector3 value) => m_vel += value;
+        public void Add(Vector3 value)
+        {
+            m_vel += value;
+            if (value.y > 0) { m_stepSinceJump = 0; }
+        }
 
+        /// <summary>
+        /// has no input at all?
+        /// </summary>
+        public bool None => m_vel == Vector3.zero;
+
+        /// <summary>
+        /// number of updates since last jump input
+        /// </summary>
+        public int StepSinceJump => m_stepSinceJump;
+        
         /// <summary>
         /// reset input after every physics state
         /// </summary>
         public void Reset()
         {
             m_vel = Vector3.zero;
+            m_stepSinceJump++;
         }
     }
 
@@ -243,6 +332,11 @@ public class CharacterBody : MonoBehaviour
         private Vector3? m_normal;
 
         /// <summary>
+        /// update states since last ground contact
+        /// </summary>
+        private int m_stepSinceContact;
+
+        /// <summary>
         /// get the normalized, average vector of all the grounds currently in contact
         /// </summary>
         public Vector3 Normal => m_normal?.normalized ?? Vector3.up;
@@ -253,11 +347,17 @@ public class CharacterBody : MonoBehaviour
         public bool HasContact => m_normal.HasValue;
 
         /// <summary>
+        /// number of fixed updates since last grounded
+        /// </summary>
+        public int StepSinceContact => m_stepSinceContact;
+
+        /// <summary>
         /// aggregate collision's normal vector to self
         /// </summary>
         public void Add(Vector3 normal)
         {
             m_normal = (m_normal ?? default) + normal;
+            m_stepSinceContact = 0;
         }
 
         /// <summary>
@@ -266,6 +366,7 @@ public class CharacterBody : MonoBehaviour
         public void Reset()
         {
             m_normal = null;
+            m_stepSinceContact++;
         }
     }
 }
