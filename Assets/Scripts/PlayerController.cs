@@ -5,11 +5,13 @@ using UnityEngine.InputSystem;
 /// player controller for Link. Acts as input agent for Link's rigidbody
 /// controller, only inputs are from the player and not AI
 /// </summary>
-[RequireComponent(typeof(CharacterBody), typeof(CameraController), typeof(PlayerInput))]
+[RequireComponent(typeof(CharacterBody), typeof(CameraController), typeof(Glider))]
+[RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
-    private CharacterBody m_rbody;    // rigidbody controller component
+    private CharacterBody m_rbody;          // rigidbody controller component
     private CameraController m_cam;         // camera controller component
+    private Glider m_glider;                // glider component
     
     private Vector2 m_moveAxis;             // desired movement since last update
     private Vector2 m_lookAxis;             // camera movement since last update
@@ -18,6 +20,7 @@ public class PlayerController : MonoBehaviour
     {
         m_rbody = gameObject.GetComponent<CharacterBody>();
         m_cam = gameObject.GetComponent<CameraController>();
+        m_glider = gameObject.GetComponent<Glider>();
         
         m_moveAxis = Vector2.zero;
         m_lookAxis = Vector2.zero;
@@ -44,6 +47,19 @@ public class PlayerController : MonoBehaviour
     // called by the input system
     private void OnJump()
     {
-        m_rbody.Jump();
+        if (m_rbody.OnGround)
+        {
+            m_rbody.Jump();
+        }
+        else
+        {
+            m_glider.active = true;
+        }
+    }
+
+    // called by the input system
+    private void OnSprint()
+    {
+        m_glider.active = false;
     }
 }

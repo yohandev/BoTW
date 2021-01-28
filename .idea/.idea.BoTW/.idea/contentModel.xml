@@ -8,6 +8,7 @@
           <e p="CameraController.cs" t="Include" />
           <e p="CharacterAnimator.cs" t="Include" />
           <e p="CharacterBody.cs" t="Include" />
+          <e p="Glider.cs" t="Include" />
           <e p="Gravity.cs" t="Include" />
           <e p="LinkController.cs" t="Include" />
           <e p="Movement.cs" t="Include" />

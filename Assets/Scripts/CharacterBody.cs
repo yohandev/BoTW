@@ -25,6 +25,11 @@ public class CharacterBody : MonoBehaviour
     private Input m_input;        // current input
 
     private Vector3 m_velocity;   // current velocity
+
+    /// <summary>
+    /// is the character touching the ground?
+    /// </summary>
+    public bool OnGround => m_ground.HasContact;
     
     /// <summary>
     /// move along the current ground plane, or xz plane if not grounded, in the
