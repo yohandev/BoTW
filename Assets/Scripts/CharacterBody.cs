@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using NaughtyAttributes;
+using UnityEngine;
 
 /// <summary>
 /// a rigidbody based character controller
@@ -187,10 +188,7 @@ public class CharacterBody : MonoBehaviour
         {
             return;
         }
-//        if (hit.normal.y < GetMinDot(hit.collider.gameObject.layer))
-//        {
-//            return;
-//        }
+        // return if (hit.normal.y < GetMinDot(hit.collider.gameObject.layer))
 
         // register collision
         m_ground.Add(hit.normal);
@@ -204,17 +202,27 @@ public class CharacterBody : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// fall down on slopes
+    /// </summary>
     private void AccelerateFriction()
     {
-        // only apply friction if there's no input and is grounded
-        if (!m_input.None || !m_ground.HasContact) { return; }
+        // only apply friction if grounded
+        if (!m_ground.HasContact) { return; }
 
         // ground normal
         var normal = m_ground.Normal;
+        var angle = Vector3.Angle(Vector3.up, normal);
         
-        //m_velocity.x += (1f - normal.y) * normal.x * (1f - 0.3f);
-        //m_velocity.z += (1f - normal.y) * normal.z * (1f - 0.3f);
-        
+        // sample slope curve
+        var slope = ground.friction.Evaluate(angle) // slope friction amount
+                    * (1f - normal.y)               // the more steep, higher the value
+                    * ground.speed                  // use move speed as multiplier
+                    * Time.deltaTime;               // dV/dt
+
+        // accelerate
+        m_velocity.x += slope * normal.x;
+        m_velocity.z += slope * normal.z;
     }
 
     private void OnCollisionEnter(Collision other)
@@ -379,6 +387,10 @@ public class CharacterBody : MonoBehaviour
 
         [Tooltip("maximum speed to be snapped to the ground")]
         public float snapThreshold;   // maximum speed to be snapped to the ground
+
+        [CurveRange(0, 0, 90, 100)]
+        [Tooltip("slide down speed multiplier vs angle(0-360)")]
+        public AnimationCurve friction;  // slide down speed multiplier vs angle(0-360)
     }
     
     [System.Serializable]

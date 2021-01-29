@@ -460,7 +460,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f7a49987f2bcb442db759ab2f6f099e1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -522,6 +522,48 @@ MonoBehaviour:
     acceleration: 7.5
     jump: 0.75
     snapThreshold: 100
+    friction:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 45.37802
+        value: 0
+        inSlope: 0.0052297683
+        outSlope: 0.0052297683
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.41943002
+      - serializedVersion: 3
+        time: 46.039677
+        value: 28.548122
+        inSlope: 0.05072115
+        outSlope: 0.05072115
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 1
+        outWeight: 0.5853016
+      - serializedVersion: 3
+        time: 90
+        value: 40.6199
+        inSlope: 0.8015225
+        outSlope: 0.8015225
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.15278357
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
   air:
     speed: 20
     acceleration: 0.75
