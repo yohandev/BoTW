@@ -3,7 +3,7 @@
 /// <summary>
 /// glider component
 /// </summary>
-public class Glider : MonoBehaviour
+public class CharacterGlider : MonoBehaviour
 {
     [Tooltip("the target object to make glide")]
     public GameObject target;           // target object to make glide

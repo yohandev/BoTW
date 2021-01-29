@@ -497,9 +497,9 @@ GameObject:
   - component: {fileID: 929959035}
   - component: {fileID: 929959033}
   - component: {fileID: 929959034}
-  - component: {fileID: 929959036}
   - component: {fileID: 929959037}
   - component: {fileID: 929959030}
+  - component: {fileID: 929959036}
   m_Layer: 8
   m_Name: Link
   m_TagString: Untagged

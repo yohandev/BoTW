@@ -8,8 +8,8 @@
           <e p="CameraController.cs" t="Include" />
           <e p="CharacterAnimator.cs" t="Include" />
           <e p="CharacterBody.cs" t="Include" />
-          <e p="Glider.cs" t="Include" />
-          <e p="PlayerController.cs" t="Include" />
+          <e p="CharacterBrain.cs" t="Include" />
+          <e p="CharacterGlider.cs" t="Include" />
         </e>
         <e p="Shaders" t="Include">
           <e p="Toon" t="Include">

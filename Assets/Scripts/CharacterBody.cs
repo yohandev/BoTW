@@ -1,4 +1,5 @@
-﻿using NaughtyAttributes;
+﻿using System;
+using NaughtyAttributes;
 using UnityEngine;
 
 /// <summary>
@@ -82,8 +83,6 @@ public class CharacterBody : MonoBehaviour
             m_rbody.mass = mass;
             // interpolation
             m_rbody.interpolation = RigidbodyInterpolation.Interpolate;
-            // works only with dynamic bodies
-            m_rbody.isKinematic = false;
         }
     }
 
@@ -236,6 +235,22 @@ public class CharacterBody : MonoBehaviour
         for (var i = 0; i < other.contactCount; i++)
         {
             m_ground.Add(other.GetContact(i).normal);
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (m_rbody)
+        {
+            m_rbody.isKinematic = false;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (m_rbody)
+        {
+            m_rbody.isKinematic = true;
         }
     }
 
