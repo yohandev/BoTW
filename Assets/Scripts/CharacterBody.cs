@@ -156,13 +156,22 @@ public class CharacterBody : MonoBehaviour
         // jump
         else if (m_ground.StepSinceContact <= 1 && m_input.Jump)
         {
+            // ground normal
+            var normal = m_ground.Normal;
+            var angle = Vector3.Angle(Vector3.up, normal);
+            
+            // approximately normalized slope amount, assuming 90º has the
+            // most friction
+            var slope = ground.friction.Evaluate(angle) / ground.friction.Evaluate(89.9f);
+            
+            // direction of jump. either straight up or on the normal
+            var dir = Vector3.Lerp(Vector3.up, normal, slope).normalized;
+            
             // initial velocity using simple newtonian physics eq
             var v0 = Mathf.Sqrt(-2f * (Physics.gravity.y - air.extraGravity) * ground.jump);
 
             // apply velocity
-            m_velocity += v0 * Vector3.up;
-
-            // TODO jump along m_ground.Normal if steep
+            m_velocity += v0 * dir;
         }
     }
 
