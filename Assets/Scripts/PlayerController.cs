@@ -6,10 +6,11 @@ using UnityEngine.InputSystem;
 /// controller, only inputs are from the player and not AI
 /// </summary>
 [RequireComponent(typeof(CharacterBody), typeof(CameraController), typeof(Glider))]
-[RequireComponent(typeof(PlayerInput))]
+[RequireComponent(typeof(PlayerInput), typeof(CharacterAnimator))]
 public class PlayerController : MonoBehaviour
 {
     private CharacterBody m_rbody;          // rigidbody controller component
+    private CharacterAnimator m_anim;       // character animator component
     private CameraController m_cam;         // camera controller component
     private Glider m_glider;                // glider component
     
@@ -19,6 +20,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         m_rbody = gameObject.GetComponent<CharacterBody>();
+        m_anim = gameObject.GetComponent<CharacterAnimator>();
         m_cam = gameObject.GetComponent<CameraController>();
         m_glider = gameObject.GetComponent<Glider>();
         
@@ -28,7 +30,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        m_rbody.Move(m_cam.TransformDirection(m_moveAxis));
+        var dir = m_cam.TransformDirection(m_moveAxis);
+        
+        m_rbody.Move(dir);
+        m_anim.Move(dir);
         m_cam.Move(m_lookAxis);
     }
 

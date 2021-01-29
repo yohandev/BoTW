@@ -35,20 +35,12 @@ public class CharacterBody : MonoBehaviour
     /// it doesn't matter how many times this function is called, the force applied will
     /// not exceed `speed` in magnitude, but the inputs will aggregate together
     /// </summary>
-    public void Move(float x, float z)
+    public void Move(Vector2 xz)
     {
         // manually create vector3 because annoying implicit casts
         // accept vector2's in the place of vector3s where z is
         // discarded
-        m_input.Add(new Vector3(x, 0, z));
-    }
-
-    /// <summary>
-    /// overload for Move(), taking in (horizontal, forward) input vector
-    /// </summary>
-    public void Move(Vector2 xz)
-    {
-        Move(xz.x, xz.y);
+        m_input.Add(new Vector3(xz.x, 0, xz.y));
     }
 
     /// <summary>

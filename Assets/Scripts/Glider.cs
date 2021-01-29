@@ -1,11 +1,16 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// glider component
+/// </summary>
 public class Glider : MonoBehaviour
 {
     [Tooltip("the target object to make glide")]
     public GameObject target;           // target object to make glide
 
+    [Tooltip("the graphical paraglider")]
+    public GameObject graphics;         // the graphical paraglider
+    
     [Tooltip("should currently glide?")]
     public bool active;                 // should currently glide?
     [Tooltip("drag coefficient")]
@@ -16,6 +21,8 @@ public class Glider : MonoBehaviour
     private Rigidbody m_rbody;          // target rigidbody
     private Collider m_collider;        // target collider
 
+    private int m_sinceActive;          // frames since activated
+    
     private void Start()
     {
         OnValidate();
@@ -29,8 +36,15 @@ public class Glider : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // graphics
+        graphics.SetActive(m_sinceActive++ > 3);
+        
         // only act if active
-        if (!active) { return; }
+        if (!active)
+        {
+            m_sinceActive = 0;
+            return;
+        }
 
         // get rigidbody
         var rb = Rigidbody;
