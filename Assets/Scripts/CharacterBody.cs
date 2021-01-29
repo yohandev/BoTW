@@ -8,18 +8,10 @@ public class CharacterBody : MonoBehaviour
     [Tooltip("mass of the rigidbody")]
     public float mass;            // mass of the rigidbody
     
-    [Tooltip("movement speed on the xz plane")]
-    public float speed;           // movement speed on the xz plane
-    [Tooltip("acceleration speed on the xz plane")]
-    public float acceleration;    // acceleration speed on the xz plane
-    [Tooltip("jump height on flat ground")]
-    public float jump;            // jump height on flat ground
-
-    [Tooltip("maximum speed to be snapped to the ground")]
-    public float snapThreshold;   // maximum speed to be snapped to the ground
-
-    [Tooltip("extra down ward gravity force to jump faster")]
-    public float extraGravity;    // extra downward gravity force to jump faster
+    [Tooltip("physic properties applied when on the ground")]
+    public GroundPhysics ground;  // physic properties applied when on the ground
+    [Tooltip("physic properties applied when in the air")]
+    public AirPhysics air;        // physic properties applied when in the air
     
     private Rigidbody m_rbody;    // character controller component
     private Collider m_collider;  // collider component, whatever shape
@@ -125,6 +117,10 @@ public class CharacterBody : MonoBehaviour
     // ReSharper disable once InconsistentNaming
     private void AccelerateXZ()
     {
+        // get the correct speed and acceleration
+        var speed = m_ground.HasContact ? ground.speed : air.speed;
+        var acceleration = m_ground.HasContact ? ground.acceleration : air.acceleration;
+
         // cache the ground normal vector
         var normal = m_ground.Normal;
         // desired velocity in local space
@@ -154,13 +150,13 @@ public class CharacterBody : MonoBehaviour
         // currently falling
         if (m_ground.StepSinceContact > 3)
         {
-            m_velocity += extraGravity * Time.deltaTime * Vector3.down;
+            m_velocity += air.extraGravity * Time.deltaTime * Vector3.down;
         }
         // jump
         else if (m_ground.StepSinceContact <= 1 && m_input.Jump)
         {
             // initial velocity using simple newtonian physics eq
-            var v0 = Mathf.Sqrt(-2f * (Physics.gravity.y - extraGravity) * jump);
+            var v0 = Mathf.Sqrt(-2f * (Physics.gravity.y - air.extraGravity) * ground.jump);
 
             // apply velocity
             m_velocity += v0 * Vector3.up;
@@ -185,7 +181,7 @@ public class CharacterBody : MonoBehaviour
             || m_ground.StepSinceContact > 1
             || m_input.StepSinceJump <= 2
             // preserve momentum if sufficiently fast
-            || vel > snapThreshold
+            || vel > ground.snapThreshold
             // if no ground detected, can't possibly snap
             || !Physics.Raycast(m_rbody.position, Vector3.down, out var hit, probeDist))
         {
@@ -369,5 +365,31 @@ public class CharacterBody : MonoBehaviour
             m_normal = null;
             m_stepSinceContact++;
         }
+    }
+
+    [System.Serializable]
+    public struct GroundPhysics
+    {
+        [Tooltip("movement speed on the xz plane")]
+        public float speed;           // movement speed on the xz plane
+        [Tooltip("acceleration speed on the xz plane")]
+        public float acceleration;    // acceleration speed on the xz plane
+        [Tooltip("jump height on flat ground")]
+        public float jump;            // jump height on flat ground
+
+        [Tooltip("maximum speed to be snapped to the ground")]
+        public float snapThreshold;   // maximum speed to be snapped to the ground
+    }
+    
+    [System.Serializable]
+    public struct AirPhysics
+    {
+        [Tooltip("movement speed on the xz plane")]
+        public float speed;           // movement speed on the xz plane
+        [Tooltip("acceleration speed on the xz plane")]
+        public float acceleration;    // acceleration speed on the xz plane
+        
+        [Tooltip("extra down ward gravity force to jump faster")]
+        public float extraGravity;    // extra downward gravity force to jump faster
     }
 }

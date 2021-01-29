@@ -517,11 +517,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mass: 1
-  speed: 10
-  acceleration: 7.5
-  jump: 0.75
-  snapThreshold: 100
-  extraGravity: 25
+  ground:
+    speed: 10
+    acceleration: 7.5
+    jump: 0.75
+    snapThreshold: 100
+  air:
+    speed: 20
+    acceleration: 0.75
+    extraGravity: 25
 --- !u!114 &929959034
 MonoBehaviour:
   m_ObjectHideFlags: 0
